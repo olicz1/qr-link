@@ -1,0 +1,57 @@
+<view class="page">
+  <view class="picker" bindtap="choose">
+    <image wx:if="{{image}}" class="preview" src="{{image}}" mode="aspectFit" />
+    <view wx:else class="placeholder">
+      <view class="plus">+</view>
+      <view>Choose a QR image</view>
+      <view class="sub">Album or camera · WeChat Pay, Alipay, or any QR</view>
+    </view>
+  </view>
+
+  <view class="form">
+    <view class="row">
+      <text class="label">Name</text>
+      <input placeholder="微信收款" value="{{title}}" bindinput="onTitle" />
+    </view>
+    <view class="row">
+      <text class="label">Subtitle</text>
+      <input placeholder="Counter · WeChat Pay" value="{{subtitle}}" bindinput="onSubtitle" />
+    </view>
+    <view class="block">
+      <view class="label">Channel</view>
+      <view class="chips">
+        <view
+          wx:for="{{channels}}"
+          wx:key="id"
+          class="chip {{channel === item.id ? 'on' : ''}}"
+          data-id="{{item.id}}"
+          bindtap="setChannel"
+        >{{item.label}}</view>
+      </view>
+    </view>
+    <view class="block">
+      <view class="label">Tap action</view>
+      <view
+        wx:for="{{actions}}"
+        wx:key="id"
+        class="action {{action === item.id ? 'on' : ''}}"
+        data-id="{{item.id}}"
+        bindtap="setAction"
+      >
+        <view class="action-title">{{item.label}}</view>
+        <view class="action-hint">{{item.hint}}</view>
+      </view>
+    </view>
+    <view class="row" wx:if="{{action === 'payment'}}">
+      <text class="label">Default ¥</text>
+      <input type="digit" placeholder="18.00" value="{{amount}}" bindinput="onAmount" />
+    </view>
+    <view class="block">
+      <view class="label">Note</view>
+      <input placeholder="Shown on the popup" value="{{note}}" bindinput="onNote" />
+    </view>
+  </view>
+
+  <button class="save" bindtap="save">Save to gallery</button>
+  <tab-bar active="upload" />
+</view>

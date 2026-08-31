@@ -1,0 +1,5 @@
+<view class="tabbar">
+  <view class="item {{active === 'index' ? 'on' : ''}}" data-page="index" bindtap="go">码柜</view>
+  <view class="item {{active === 'upload' ? 'on' : ''}}" data-page="upload" bindtap="go">上传</view>
+  <view class="item {{active === 'me' ? 'on' : ''}}" data-page="me" bindtap="go">我的</view>
+</view>

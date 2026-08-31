@@ -1,0 +1,29 @@
+<view class="page">
+  <view class="hero">
+    <view class="kicker">东风面馆 · Weekend only</view>
+    <view class="title">周末套餐</view>
+    <view class="sub">Two bowls, one side, tea. Opened from the gallery card.</view>
+  </view>
+  <view class="card">
+    <view class="row">
+      <view>
+        <view class="name">Beef + tomato noodles</view>
+        <view class="desc">Large bowl · chili oil on the side</view>
+      </view>
+      <view>¥18</view>
+    </view>
+    <view class="row">
+      <view>
+        <view class="name">Add a second bowl</view>
+        <view class="desc">Same price as the first</view>
+      </view>
+      <view>¥18</view>
+    </view>
+    <view class="row">
+      <view>
+        <view class="name">Sat–Sun 11:00–15:00</view>
+        <view class="desc">Show this page at the counter</view>
+      </view>
+    </view>
+  </view>
+</view>

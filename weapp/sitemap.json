@@ -1,0 +1,9 @@
+{
+  "desc": "PayCase 码柜 mini program",
+  "rules": [
+    {
+      "action": "allow",
+      "page": "*"
+    }
+  ]
+}

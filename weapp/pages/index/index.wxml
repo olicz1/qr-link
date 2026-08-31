@@ -1,0 +1,72 @@
+<view class="page">
+  <view class="hero">
+    <view class="en">{{profile.shopNameEn}}</view>
+    <view class="zh">{{profile.shopName}}</view>
+    <view class="hint">Tap a code to pop the pay sheet, a page, or the decoded text.</view>
+  </view>
+
+  <view class="grid">
+    <view
+      class="card"
+      wx:for="{{items}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      bindtap="open"
+    >
+      <image class="qr" src="{{item.image}}" mode="aspectFit" />
+      <view class="meta">
+        <view class="title">{{item.title}}</view>
+        <view class="sub">{{item.subtitle}}</view>
+        <view class="tag {{item.channel}}">{{item.channel}}</view>
+      </view>
+      <view class="tools">
+        <view class="tool" data-id="{{item.id}}" catchtap="pin">Pin</view>
+        <view class="tool danger" data-id="{{item.id}}" catchtap="remove">Del</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty" wx:if="{{items.length === 0}}">
+    <view class="empty-title">No codes yet</view>
+    <view class="empty-copy">Upload a WeChat Pay or Alipay QR from the 上传 tab.</view>
+  </view>
+
+  <view class="mask" wx:if="{{active}}" bindtap="close">
+    <view class="sheet" catchtap="noop">
+      <view class="handle"></view>
+
+      <block wx:if="{{success}}">
+        <view class="ok">支付成功</view>
+        <view class="ok-amt">¥{{amount}}</view>
+        <view class="ok-id">{{txId}}</view>
+        <button class="pay-btn" bindtap="close">Done</button>
+      </block>
+
+      <block wx:elif="{{active.action === 'payment'}}">
+        <view class="shop">{{profile.shopName}}</view>
+        <view class="code-title">{{active.title}}</view>
+        <view class="amt-row">
+          <text class="yen">¥</text>
+          <input class="amt" type="digit" value="{{amount}}" bindinput="onAmount" />
+        </view>
+        <image class="sheet-qr" src="{{active.image}}" mode="aspectFit" />
+        <view class="note">{{active.note}}</view>
+        <button class="pay-btn" loading="{{paying}}" bindtap="pay">立即支付  Pay now</button>
+      </block>
+
+      <block wx:elif="{{active.action === 'open_link'}}">
+        <view class="shop">{{active.title}}</view>
+        <view class="note">{{active.note}}</view>
+        <button class="pay-btn" bindtap="openLink">Open weekend menu</button>
+      </block>
+
+      <block wx:else>
+        <view class="shop">{{active.title}}</view>
+        <view class="payload">{{active.payload}}</view>
+        <button class="pay-btn" bindtap="copyPayload">Copy text</button>
+      </block>
+    </view>
+  </view>
+
+  <tab-bar active="index" />
+</view>

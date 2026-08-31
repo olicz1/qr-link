@@ -1,0 +1,35 @@
+<view class="page">
+  <view class="card profile">
+    <view class="avatar">东</view>
+    <view class="fields">
+      <input class="zh" value="{{profile.shopName}}" bindinput="onShop" />
+      <view class="en">{{profile.shopNameEn}}</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="row">
+      <text>Codes in 码柜</text>
+      <text class="muted">{{count}}</text>
+    </view>
+    <view class="row">
+      <text>Demo merchant</text>
+      <text class="muted">East Wind Noodles</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="row" bindtap="restore">Restore demo codes</view>
+    <view class="row danger" bindtap="clear">Clear gallery</view>
+  </view>
+
+  <view class="card copy">
+    <view class="h">From this demo to production</view>
+    <view class="p">1. Replace touristappid with your AppID in project.config.json.</view>
+    <view class="p">2. Swap wx.chooseMedia temp paths for cloud storage.</view>
+    <view class="p">3. Call a unified-order API, then wx.requestPayment from the pay sheet.</view>
+    <view class="p">4. Keep the same item shape as the H5 demo (src/lib/types.ts).</view>
+  </view>
+
+  <tab-bar active="me" />
+</view>
