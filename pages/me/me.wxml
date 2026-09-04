@@ -1,34 +1,24 @@
-<view class="page">
+<view class="page" style="padding-bottom: {{pagePad}}px;">
   <view class="card profile">
-    <view class="avatar">东</view>
+    <view class="avatar">{{initial}}</view>
     <view class="fields">
       <input class="zh" value="{{profile.shopName}}" bindinput="onShop" />
-      <view class="en">{{profile.shopNameEn}}</view>
+      <input class="en" value="{{profile.shopNameEn}}" bindinput="onShopEn" />
     </view>
   </view>
+  <view class="hint">店名会出现在收款弹层上，只保存在这台手机。</view>
 
   <view class="card">
-    <view class="row">
-      <text>Codes in 码柜</text>
-      <text class="muted">{{count}}</text>
-    </view>
-    <view class="row">
-      <text>Demo merchant</text>
-      <text class="muted">East Wind Noodles</text>
-    </view>
-  </view>
-
-  <view class="card">
-    <view class="row" bindtap="restore">Restore demo codes</view>
-    <view class="row danger" bindtap="clear">Clear gallery</view>
+    <view class="row" bindtap="restore">恢复演示数据</view>
+    <view class="row danger" bindtap="clear">清空码柜</view>
   </view>
 
   <view class="card copy">
-    <view class="h">From this demo to production</view>
-    <view class="p">1. Replace touristappid with your AppID in project.config.json.</view>
-    <view class="p">2. Swap wx.chooseMedia temp paths for cloud storage.</view>
-    <view class="p">3. Call a unified-order API, then wx.requestPayment from the pay sheet.</view>
-    <view class="p">4. Keep the same item shape as the H5 demo (src/lib/types.ts).</view>
+    <view class="h">从演示到真实收款</view>
+    <view class="p">1. 在 project.config.json 里换成你的 AppID。</view>
+    <view class="p">2. 把 wx.chooseMedia 的临时路径换成云存储或 CDN。</view>
+    <view class="p">3. 接统一下单接口，再在收款弹层调用 wx.requestPayment。</view>
+    <view class="p">4. 每条码保持 { id, title, channel, action, image, payload, amount }。</view>
   </view>
 
   <tab-bar active="me" />

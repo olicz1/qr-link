@@ -1,36 +1,41 @@
-<view class="page">
+<view class="page" style="padding-bottom: {{pagePad}}px;">
   <view class="picker" bindtap="choose">
     <image wx:if="{{image}}" class="preview" src="{{image}}" mode="aspectFit" />
     <view wx:else class="placeholder">
       <view class="plus">+</view>
-      <view>Choose a QR image</view>
-      <view class="sub">Album or camera · WeChat Pay, Alipay, or any QR</view>
+      <view class="ph-title">选择一张二维码</view>
+      <view class="sub">相册或相机 · 微信、支付宝或其他收款码</view>
     </view>
+  </view>
+
+  <view class="pick-row">
+    <view class="pick-btn" data-source="album" bindtap="choose">相册</view>
+    <view class="pick-btn" data-source="camera" bindtap="choose">拍照</view>
   </view>
 
   <view class="form">
     <view class="row">
-      <text class="label">Name</text>
+      <text class="label">名称</text>
       <input placeholder="微信收款" value="{{title}}" bindinput="onTitle" />
     </view>
     <view class="row">
-      <text class="label">Subtitle</text>
-      <input placeholder="Counter · WeChat Pay" value="{{subtitle}}" bindinput="onSubtitle" />
+      <text class="label">副标题</text>
+      <input placeholder="柜台 · 微信支付" value="{{subtitle}}" bindinput="onSubtitle" />
     </view>
     <view class="block">
-      <view class="label">Channel</view>
+      <view class="label muted">渠道</view>
       <view class="chips">
         <view
           wx:for="{{channels}}"
           wx:key="id"
-          class="chip {{channel === item.id ? 'on' : ''}}"
+          class="chip chip-{{item.id}} {{channel === item.id ? 'on' : ''}}"
           data-id="{{item.id}}"
           bindtap="setChannel"
         >{{item.label}}</view>
       </view>
     </view>
     <view class="block">
-      <view class="label">Tap action</view>
+      <view class="label muted">点按后</view>
       <view
         wx:for="{{actions}}"
         wx:key="id"
@@ -43,15 +48,15 @@
       </view>
     </view>
     <view class="row" wx:if="{{action === 'payment'}}">
-      <text class="label">Default ¥</text>
+      <text class="label">默认 ¥</text>
       <input type="digit" placeholder="18.00" value="{{amount}}" bindinput="onAmount" />
     </view>
-    <view class="block">
-      <view class="label">Note</view>
-      <input placeholder="Shown on the popup" value="{{note}}" bindinput="onNote" />
+    <view class="block last">
+      <view class="label muted">备注</view>
+      <input class="note" placeholder="显示在弹层上" value="{{note}}" bindinput="onNote" />
     </view>
   </view>
 
-  <button class="save" bindtap="save">Save to gallery</button>
+  <button class="wx-btn save" bindtap="save">保存到码柜</button>
   <tab-bar active="upload" />
 </view>

@@ -70,6 +70,23 @@ const DEFAULT_PROFILE = {
   shopNameEn: "East Wind Noodles",
 };
 
+const CHANNEL_META = {
+  wechat: { label: "WeChat", labelZh: "微信支付", color: "#07C160" },
+  alipay: { label: "Alipay", labelZh: "支付宝", color: "#1677FF" },
+  unionpay: { label: "UnionPay", labelZh: "云闪付", color: "#E21836" },
+  link: { label: "Link", labelZh: "链接", color: "#6366F1" },
+  text: { label: "Text", labelZh: "文本", color: "#D97706" },
+  custom: { label: "Custom", labelZh: "自定义", color: "#57534E" },
+};
+
+function decorate(item) {
+  const meta = CHANNEL_META[item.channel] || CHANNEL_META.custom;
+  return Object.assign({}, item, {
+    channelLabel: meta.labelZh,
+    channelColor: meta.color,
+  });
+}
+
 function ensureSeed() {
   const existing = wx.getStorageSync(ITEMS_KEY);
   if (!existing || !existing.length) {
@@ -86,10 +103,13 @@ function ensureSeed() {
 function list() {
   ensureSeed();
   const items = wx.getStorageSync(ITEMS_KEY) || [];
-  return items.slice().sort((a, b) => {
-    if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
-    return (b.createdAt || 0) - (a.createdAt || 0);
-  });
+  return items
+    .slice()
+    .sort((a, b) => {
+      if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+      return (b.createdAt || 0) - (a.createdAt || 0);
+    })
+    .map(decorate);
 }
 
 function profile() {
@@ -131,6 +151,7 @@ function clear() {
 }
 
 module.exports = {
+  CHANNEL_META,
   ensureSeed,
   list,
   profile,

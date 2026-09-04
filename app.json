@@ -7,8 +7,8 @@
   ],
   "window": {
     "navigationBarTitleText": "码柜",
-    "navigationBarBackgroundColor": "#ffffff",
-    "navigationBarTextStyle": "black",
+    "navigationBarBackgroundColor": "#0D3B66",
+    "navigationBarTextStyle": "white",
     "backgroundColor": "#EDEDED",
     "backgroundTextStyle": "light"
   },

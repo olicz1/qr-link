@@ -1,9 +1,9 @@
 .page {
-  padding: 24rpx;
+  padding: 24rpx 24rpx calc(24rpx + env(safe-area-inset-bottom));
 }
 
 .hero {
-  background: linear-gradient(160deg, #07c160, #06ad56);
+  background: #0d3b66;
   color: #fff;
   border-radius: 24rpx;
   padding: 48rpx 40rpx;
@@ -30,13 +30,19 @@
   margin-top: 24rpx;
   background: #fff;
   border-radius: 24rpx;
+  overflow: hidden;
 }
 
 .row {
   padding: 28rpx 32rpx;
   display: flex;
   justify-content: space-between;
+  align-items: center;
   border-bottom: 1rpx solid rgba(0, 0, 0, 0.06);
+}
+
+.row:last-child {
+  border-bottom: none;
 }
 
 .name {
@@ -45,6 +51,7 @@
 }
 
 .desc {
+  margin-top: 4rpx;
   font-size: 24rpx;
   color: #888;
 }

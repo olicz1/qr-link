@@ -1,69 +1,104 @@
-<view class="page">
+<view class="page" bindtap="closeMenu" style="padding-bottom: {{pagePad}}px;">
   <view class="hero">
     <view class="en">{{profile.shopNameEn}}</view>
     <view class="zh">{{profile.shopName}}</view>
-    <view class="hint">Tap a code to pop the pay sheet, a page, or the decoded text.</view>
+    <view class="hint">点卡片打开收款页、链接或解码文本。从「上传」加入自己的码。</view>
+    <view class="count">{{total}} 个收款码</view>
   </view>
 
-  <view class="grid">
-    <view
-      class="card"
-      wx:for="{{items}}"
-      wx:key="id"
-      data-id="{{item.id}}"
-      bindtap="open"
-    >
-      <image class="qr" src="{{item.image}}" mode="aspectFit" />
-      <view class="meta">
-        <view class="title">{{item.title}}</view>
-        <view class="sub">{{item.subtitle}}</view>
-        <view class="tag {{item.channel}}">{{item.channel}}</view>
-      </view>
-      <view class="tools">
-        <view class="tool" data-id="{{item.id}}" catchtap="pin">Pin</view>
-        <view class="tool danger" data-id="{{item.id}}" catchtap="remove">Del</view>
+  <scroll-view class="filters" scroll-x show-scrollbar="{{false}}">
+    <view class="filters-inner">
+      <view
+        class="chip {{filter === item.id ? 'on' : ''}}"
+        wx:for="{{filters}}"
+        wx:key="id"
+        data-id="{{item.id}}"
+        catchtap="setFilter"
+      >{{item.label}}</view>
+    </view>
+  </scroll-view>
+
+  <view class="grid" wx:if="{{items.length}}">
+    <view class="cell" wx:for="{{items}}" wx:key="id">
+      <view class="card" data-id="{{item.id}}" bindtap="open">
+        <view class="pin" wx:if="{{item.pinned}}">置顶</view>
+        <view class="more" data-id="{{item.id}}" catchtap="toggleMenu">···</view>
+        <view class="menu" wx:if="{{menuId === item.id}}" catchtap="noop">
+          <view class="menu-item" data-id="{{item.id}}" catchtap="pin">{{item.pinned ? '取消置顶' : '置顶'}}</view>
+          <view class="menu-item danger" data-id="{{item.id}}" catchtap="remove">删除</view>
+        </view>
+        <view class="media">
+          <image class="qr" src="{{item.image}}" mode="aspectFit" />
+        </view>
+        <view class="meta">
+          <view class="title">{{item.title}}</view>
+          <view class="sub">{{item.subtitle}}</view>
+          <view class="tag" style="background-color: {{item.channelColor}};">{{item.channelLabel}}</view>
+        </view>
       </view>
     </view>
   </view>
 
-  <view class="empty" wx:if="{{items.length === 0}}">
-    <view class="empty-title">No codes yet</view>
-    <view class="empty-copy">Upload a WeChat Pay or Alipay QR from the 上传 tab.</view>
+  <view class="empty" wx:else>
+    <view class="empty-mark">码</view>
+    <view class="empty-title">{{total ? '这一类还没有码' : '还没有收款码'}}</view>
+    <view class="empty-copy">{{total ? '换一个分类，或去上传页加一张二维码。' : '去「上传」选一张微信、支付宝或其他收款码。'}}</view>
   </view>
 
-  <view class="mask" wx:if="{{active}}" bindtap="close">
-    <view class="sheet" catchtap="noop">
+  <view class="mask" wx:if="{{active}}" catchtouchmove="noop" bindtap="close">
+    <view class="sheet" catchtap="noop" style="padding-bottom: {{sheetPad}}px;">
       <view class="handle"></view>
 
       <block wx:if="{{success}}">
+        <view class="ok-mark">✓</view>
         <view class="ok">支付成功</view>
+        <view class="ok-sub">Payment complete</view>
         <view class="ok-amt">¥{{amount}}</view>
+        <view class="ok-shop">{{profile.shopName}}</view>
         <view class="ok-id">{{txId}}</view>
-        <button class="pay-btn" bindtap="close">Done</button>
+        <button class="wx-btn" bindtap="close">完成</button>
       </block>
 
       <block wx:elif="{{active.action === 'payment'}}">
+        <view class="shop-en">{{profile.shopNameEn}}</view>
         <view class="shop">{{profile.shopName}}</view>
         <view class="code-title">{{active.title}}</view>
         <view class="amt-row">
           <text class="yen">¥</text>
-          <input class="amt" type="digit" value="{{amount}}" bindinput="onAmount" />
+          <input class="amt" type="digit" value="{{amount}}" bindinput="onAmount" placeholder="0.00" />
         </view>
-        <image class="sheet-qr" src="{{active.image}}" mode="aspectFit" />
-        <view class="note">{{active.note}}</view>
-        <button class="pay-btn" loading="{{paying}}" bindtap="pay">立即支付  Pay now</button>
+        <view class="amt-hint">点金额可修改</view>
+        <view class="sheet-qr-wrap">
+          <view class="stripe" style="background-color: {{active.channelColor}};"></view>
+          <image class="sheet-qr" src="{{active.image}}" mode="aspectFit" />
+          <view class="stripe-lab" style="color: {{active.channelColor}};">{{active.channelLabel}}</view>
+        </view>
+        <view class="note" wx:if="{{active.note}}">{{active.note}}</view>
+        <button class="wx-btn" loading="{{paying}}" bindtap="pay">立即支付  Pay now</button>
+        <view class="sheet-row">
+          <button class="wx-btn wx-btn-ghost" catchtap="saveImage">保存图片</button>
+          <button class="wx-btn wx-btn-ghost" catchtap="copyPayload">复制内容</button>
+        </view>
       </block>
 
       <block wx:elif="{{active.action === 'open_link'}}">
         <view class="shop">{{active.title}}</view>
-        <view class="note">{{active.note}}</view>
-        <button class="pay-btn" bindtap="openLink">Open weekend menu</button>
+        <view class="code-title">{{active.subtitle}}</view>
+        <view class="sheet-qr-wrap">
+          <image class="sheet-qr" src="{{active.image}}" mode="aspectFit" />
+        </view>
+        <view class="note" wx:if="{{active.note}}">{{active.note}}</view>
+        <button class="wx-btn" bindtap="openLink">打开周末菜单</button>
+        <button class="wx-btn wx-btn-ghost" bindtap="copyPayload">复制链接</button>
       </block>
 
       <block wx:else>
         <view class="shop">{{active.title}}</view>
+        <view class="sheet-qr-wrap">
+          <image class="sheet-qr" src="{{active.image}}" mode="aspectFit" />
+        </view>
         <view class="payload">{{active.payload}}</view>
-        <button class="pay-btn" bindtap="copyPayload">Copy text</button>
+        <button class="wx-btn" bindtap="copyPayload">复制文本</button>
       </block>
     </view>
   </view>

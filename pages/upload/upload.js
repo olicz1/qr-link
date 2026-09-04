@@ -1,4 +1,5 @@
 const store = require("../../utils/store");
+const { pageMetrics } = require("../../utils/layout");
 
 Page({
   data: {
@@ -9,6 +10,7 @@ Page({
     action: "payment",
     amount: "",
     note: "",
+    pagePad: 120,
     channels: [
       { id: "wechat", label: "微信支付" },
       { id: "alipay", label: "支付宝" },
@@ -18,24 +20,36 @@ Page({
       { id: "custom", label: "自定义" },
     ],
     actions: [
-      { id: "payment", label: "Payment sheet", hint: "Opens the WeChat-style pay popup." },
-      { id: "open_link", label: "Open link", hint: "Navigate to a page or URL." },
-      { id: "show_content", label: "Show content", hint: "Pop the decoded text." },
+      { id: "payment", label: "收款弹层", hint: "打开微信风格的金额 + 支付页。" },
+      { id: "open_link", label: "打开链接", hint: "跳到小程序页或网址。" },
+      { id: "show_content", label: "显示内容", hint: "弹出解码后的文本。" },
     ],
   },
 
-  choose() {
+  onLoad() {
+    this.applyMetrics();
+  },
+
+  onShow() {
+    this.applyMetrics();
+  },
+
+  applyMetrics() {
+    this.setData({ pagePad: pageMetrics().pagePad });
+  },
+
+  choose(e) {
+    const source = e.currentTarget.dataset.source;
     wx.chooseMedia({
       count: 1,
       mediaType: ["image"],
-      sourceType: ["album", "camera"],
+      sourceType: source ? [source] : ["album", "camera"],
       success: (res) => {
         const file = res.tempFiles[0];
         this.setData({ image: file.tempFilePath });
-        // Production: decode the QR (plugin / cloud) and infer channel.
       },
       fail: () => {
-        wx.showToast({ title: "No image selected", icon: "none" });
+        wx.showToast({ title: "未选择图片", icon: "none" });
       },
     });
   },
@@ -61,17 +75,17 @@ Page({
 
   save() {
     if (!this.data.image) {
-      wx.showToast({ title: "Choose a QR image first", icon: "none" });
+      wx.showToast({ title: "先选一张二维码", icon: "none" });
       return;
     }
     if (!this.data.title) {
-      wx.showToast({ title: "Give this code a name", icon: "none" });
+      wx.showToast({ title: "给这个码起个名字", icon: "none" });
       return;
     }
     store.add({
       id: "qr-" + Date.now(),
       title: this.data.title,
-      subtitle: this.data.subtitle || "Uploaded",
+      subtitle: this.data.subtitle || "已上传",
       channel: this.data.channel,
       action: this.data.action,
       image: this.data.image,
@@ -81,7 +95,7 @@ Page({
       pinned: false,
       createdAt: Date.now(),
     });
-    wx.showToast({ title: "Saved", icon: "success" });
+    wx.showToast({ title: "已保存", icon: "success" });
     setTimeout(() => {
       wx.reLaunch({ url: "/pages/index/index" });
     }, 400);
