@@ -1,41 +1,88 @@
 const store = require("../../utils/store");
-const { pageMetrics } = require("../../utils/layout");
+const { pageMetrics, syncTabBar } = require("../../utils/layout");
+const { decodeQr, warmWorker } = require("../../utils/qr");
+const { persistImage } = require("../../utils/image");
+
+function titleFrom(text) {
+  const raw = (text || "").trim();
+  if (!raw) return "";
+  try {
+    if (/^https?:\/\//i.test(raw)) {
+      const host = raw.replace(/^https?:\/\//i, "").split("/")[0];
+      return host.replace(/^www\./, "");
+    }
+  } catch (e) {}
+  return raw.slice(0, 16);
+}
 
 Page({
   data: {
     image: "",
     title: "",
     subtitle: "",
-    channel: "wechat",
-    action: "payment",
-    amount: "",
-    note: "",
+    payload: "",
+    recognizing: false,
+    saving: false,
+    channel: "parking",
     pagePad: 120,
-    channels: [
-      { id: "wechat", label: "微信支付" },
-      { id: "alipay", label: "支付宝" },
-      { id: "unionpay", label: "云闪付" },
-      { id: "link", label: "链接" },
-      { id: "text", label: "文本" },
-      { id: "custom", label: "自定义" },
-    ],
-    actions: [
-      { id: "payment", label: "收款弹层", hint: "打开微信风格的金额 + 支付页。" },
-      { id: "open_link", label: "打开链接", hint: "跳到小程序页或网址。" },
-      { id: "show_content", label: "显示内容", hint: "弹出解码后的文本。" },
-    ],
+    channels: store.TAGS,
   },
 
   onLoad() {
+    this.decodeGen = 0;
     this.applyMetrics();
+    warmWorker();
   },
 
   onShow() {
     this.applyMetrics();
+    syncTabBar("upload");
+  },
+
+  onUnload() {
+    this.decodeGen += 1;
   },
 
   applyMetrics() {
     this.setData({ pagePad: pageMetrics().pagePad });
+  },
+
+  cancelDecode() {
+    this.decodeGen += 1;
+  },
+
+  applyPayload(text, fillTitle) {
+    const payload = (text || "").trim();
+    if (!payload) return;
+    const next = { payload };
+    if (fillTitle && !this.data.title) next.title = titleFrom(payload);
+    this.setData(next);
+  },
+
+  scan() {
+    wx.scanCode({
+      onlyFromCamera: false,
+      scanType: ["qrCode", "wxCode"],
+      success: (res) => {
+        this.applyPayload(res.result, true);
+        wx.showToast({ title: "已识别", icon: "success" });
+        if (!this.data.image) {
+          wx.chooseMedia({
+            count: 1,
+            mediaType: ["image"],
+            sourceType: ["album", "camera"],
+            success: (media) => {
+              this.setData({ image: media.tempFiles[0].tempFilePath });
+            },
+          });
+        }
+      },
+      fail: (err) => {
+        const msg = (err && err.errMsg) || "";
+        if (msg.indexOf("cancel") !== -1) return;
+        wx.showToast({ title: "未识别到码", icon: "none" });
+      },
+    });
   },
 
   choose(e) {
@@ -46,7 +93,26 @@ Page({
       sourceType: source ? [source] : ["album", "camera"],
       success: (res) => {
         const file = res.tempFiles[0];
-        this.setData({ image: file.tempFilePath });
+        this.cancelDecode();
+        const gen = this.decodeGen;
+        this.setData({ image: file.tempFilePath, recognizing: true, payload: "" }, () => {
+          decodeQr(file.tempFilePath, { alive: () => this.decodeGen === gen })
+            .then((text) => {
+              if (this.decodeGen !== gen) return;
+              this.setData({ recognizing: false });
+              if (text) {
+                this.applyPayload(text, true);
+                wx.showToast({ title: "已识别", icon: "success" });
+              } else {
+                wx.showToast({ title: "未识别到码，可改用扫一扫", icon: "none" });
+              }
+            })
+            .catch(() => {
+              if (this.decodeGen !== gen) return;
+              this.setData({ recognizing: false });
+              wx.showToast({ title: "未识别到码，可改用扫一扫", icon: "none" });
+            });
+        });
       },
       fail: () => {
         wx.showToast({ title: "未选择图片", icon: "none" });
@@ -60,20 +126,25 @@ Page({
   onSubtitle(e) {
     this.setData({ subtitle: e.detail.value });
   },
-  onAmount(e) {
-    this.setData({ amount: e.detail.value });
-  },
-  onNote(e) {
-    this.setData({ note: e.detail.value });
-  },
   setChannel(e) {
     this.setData({ channel: e.currentTarget.dataset.id });
   },
-  setAction(e) {
-    this.setData({ action: e.currentTarget.dataset.id });
+
+  resetForm() {
+    this.cancelDecode();
+    this.setData({
+      image: "",
+      title: "",
+      subtitle: "",
+      payload: "",
+      recognizing: false,
+      saving: false,
+      channel: "parking",
+    });
   },
 
   save() {
+    if (this.data.saving) return;
     if (!this.data.image) {
       wx.showToast({ title: "先选一张二维码", icon: "none" });
       return;
@@ -82,22 +153,43 @@ Page({
       wx.showToast({ title: "给这个码起个名字", icon: "none" });
       return;
     }
-    store.add({
+
+    this.cancelDecode();
+    this.setData({ saving: true, recognizing: false });
+    const draft = {
       id: "qr-" + Date.now(),
       title: this.data.title,
       subtitle: this.data.subtitle || "已上传",
       channel: this.data.channel,
-      action: this.data.action,
+      action: "open_miniapp",
       image: this.data.image,
-      payload: "",
-      amount: this.data.amount,
-      note: this.data.note,
+      payload: this.data.payload || "",
+      amount: "",
+      note: "",
       pinned: false,
       createdAt: Date.now(),
-    });
-    wx.showToast({ title: "已保存", icon: "success" });
-    setTimeout(() => {
-      wx.reLaunch({ url: "/pages/index/index" });
-    }, 400);
+    };
+
+    persistImage(draft.image)
+      .catch(() => draft.image)
+      .then((image) => {
+        store.add(Object.assign({}, draft, { image }));
+        const toast = () => wx.showToast({ title: "已保存", icon: "success" });
+        wx.switchTab({
+          url: "/pages/index/index",
+          success: () => {
+            this.resetForm();
+            toast();
+          },
+          fail: () => {
+            this.resetForm();
+            wx.reLaunch({ url: "/pages/index/index", complete: toast });
+          },
+        });
+      })
+      .catch(() => {
+        this.setData({ saving: false });
+        wx.showToast({ title: "保存失败", icon: "none" });
+      });
   },
 });

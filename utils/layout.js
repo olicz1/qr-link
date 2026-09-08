@@ -1,4 +1,8 @@
+let cached = null;
+
 function pageMetrics() {
+  if (cached) return cached;
+
   let info = {};
   try {
     info = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
@@ -14,12 +18,23 @@ function pageMetrics() {
   }
 
   const tabBar = 56;
-  return {
+  cached = {
     safeBottom,
     tabBar,
     pagePad: tabBar + safeBottom + 40,
     sheetPad: 16 + safeBottom,
   };
+  return cached;
 }
 
-module.exports = { pageMetrics };
+function syncTabBar(active) {
+  try {
+    const pages = getCurrentPages();
+    const page = pages[pages.length - 1];
+    if (!page || typeof page.getTabBar !== "function") return;
+    const bar = page.getTabBar();
+    if (bar) bar.setData({ active });
+  } catch (e) {}
+}
+
+module.exports = { pageMetrics, syncTabBar };

@@ -21,5 +21,4 @@
     <view class="p">4. 每条码保持 { id, title, channel, action, image, payload, amount }。</view>
   </view>
 
-  <tab-bar active="me" />
 </view>

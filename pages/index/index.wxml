@@ -1,11 +1,4 @@
 <view class="page" bindtap="closeMenu" style="padding-bottom: {{pagePad}}px;">
-  <view class="hero">
-    <view class="en">{{profile.shopNameEn}}</view>
-    <view class="zh">{{profile.shopName}}</view>
-    <view class="hint">点卡片打开收款页、链接或解码文本。从「上传」加入自己的码。</view>
-    <view class="count">{{total}} 个收款码</view>
-  </view>
-
   <scroll-view class="filters" scroll-x show-scrollbar="{{false}}">
     <view class="filters-inner">
       <view
@@ -28,7 +21,7 @@
           <view class="menu-item danger" data-id="{{item.id}}" catchtap="remove">删除</view>
         </view>
         <view class="media">
-          <image class="qr" src="{{item.image}}" mode="aspectFit" />
+          <image class="qr" src="{{item.image}}" mode="aspectFit" lazy-load />
         </view>
         <view class="meta">
           <view class="title">{{item.title}}</view>
@@ -41,8 +34,8 @@
 
   <view class="empty" wx:else>
     <view class="empty-mark">码</view>
-    <view class="empty-title">{{total ? '这一类还没有码' : '还没有收款码'}}</view>
-    <view class="empty-copy">{{total ? '换一个分类，或去上传页加一张二维码。' : '去「上传」选一张微信、支付宝或其他收款码。'}}</view>
+    <view class="empty-title">{{total ? '这一类还没有码' : '还没有小程序码'}}</view>
+    <view class="empty-copy">{{total ? '换一个分类，或去上传页加一张二维码。' : '去「上传」保存一张小程序码，点开即可跳转。'}}</view>
   </view>
 
   <view class="mask" wx:if="{{active}}" catchtouchmove="noop" bindtap="close">
@@ -103,5 +96,4 @@
     </view>
   </view>
 
-  <tab-bar active="index" />
 </view>

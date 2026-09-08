@@ -1,6 +1,3 @@
 {
-  "navigationBarTitleText": "上传收款码",
-  "usingComponents": {
-    "tab-bar": "../../components/tab-bar/tab-bar"
-  }
+  "navigationBarTitleText": "上传收款码"
 }

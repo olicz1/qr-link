@@ -1,6 +1,3 @@
 {
-  "navigationBarTitleText": "码柜",
-  "usingComponents": {
-    "tab-bar": "../../components/tab-bar/tab-bar"
-  }
+  "navigationBarTitleText": "码柜"
 }

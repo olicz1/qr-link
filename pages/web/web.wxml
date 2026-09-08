@@ -1,0 +1,10 @@
+<web-view wx:if="{{url && !failed}}" src="{{url}}" binderror="onError"></web-view>
+
+<view wx:if="{{failed}}" class="fail">
+  <view class="mark">页</view>
+  <view class="title">页面打不开</view>
+  <view class="copy">多半是跳到了未配置的域名。链接仍可复制后在微信里打开。</view>
+  <view class="url" wx:if="{{url}}">{{url}}</view>
+  <button class="wx-btn" wx:if="{{url}}" bindtap="retry">再试一次</button>
+  <button class="wx-btn wx-btn-ghost" wx:if="{{url}}" bindtap="copy">复制链接</button>
+</view>

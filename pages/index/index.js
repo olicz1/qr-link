@@ -1,15 +1,14 @@
 const store = require("../../utils/store");
-const { pageMetrics } = require("../../utils/layout");
+const { pageMetrics, syncTabBar } = require("../../utils/layout");
+const { openInsideApp } = require("../../utils/open");
 
-const FILTERS = [
-  { id: "all", label: "全部" },
-  { id: "wechat", label: "微信" },
-  { id: "alipay", label: "支付宝" },
-  { id: "unionpay", label: "云闪付" },
-  { id: "link", label: "链接" },
-  { id: "text", label: "文本" },
-  { id: "custom", label: "自定义" },
-];
+const FILTERS = [{ id: "all", label: "全部" }].concat(store.TAGS);
+
+function hideLoading() {
+  try {
+    wx.hideLoading();
+  } catch (e) {}
+}
 
 Page({
   data: {
@@ -28,18 +27,19 @@ Page({
     sheetPad: 24,
   },
 
-  onLoad() {
-    this.applyMetrics();
-  },
-
   onShow() {
-    this.applyMetrics();
-    this.refresh();
-  },
-
-  applyMetrics() {
     const m = pageMetrics();
-    this.setData({ pagePad: m.pagePad, sheetPad: m.sheetPad });
+    const all = store.list();
+    const filter = this.data.filter;
+    this.setData({
+      pagePad: m.pagePad,
+      sheetPad: m.sheetPad,
+      items: filter === "all" ? all : all.filter((row) => row.channel === filter),
+      total: all.length,
+      profile: store.profile(),
+      menuId: "",
+    });
+    syncTabBar("index");
   },
 
   noop() {},
@@ -70,16 +70,61 @@ Page({
 
   open(e) {
     const id = e.currentTarget.dataset.id;
-    const item = (store.list() || []).find((row) => row.id === id);
+    const item = (this.data.items || []).find((row) => row.id === id) ||
+      (store.list() || []).find((row) => row.id === id);
     if (!item) return;
+    this.setData({ menuId: "" });
+    if (item.action === "open_miniapp") {
+      this.openMiniapp(item);
+      return;
+    }
     this.setData({
       active: item,
       amount: item.amount || "",
       paying: false,
       success: false,
       txId: "",
-      menuId: "",
     });
+  },
+
+  openMiniapp(item) {
+    const finish = (ok) => {
+      hideLoading();
+      if (!ok) wx.showToast({ title: "无法打开", icon: "none" });
+    };
+    const go = (text) => {
+      if (text && item.id && text !== item.payload) {
+        store.patch(item.id, { payload: text });
+      }
+      return openInsideApp(text || "");
+    };
+
+    if (this._opening) return;
+    this._opening = true;
+    const loadingTimer = setTimeout(hideLoading, 8000);
+    const done = (ok) => {
+      clearTimeout(loadingTimer);
+      this._opening = false;
+      finish(ok);
+    };
+
+    if (item.payload) {
+      wx.showLoading({ title: "打开中" });
+      go(item.payload).then(done, () => done(false));
+      return;
+    }
+    if (!item.image) {
+      clearTimeout(loadingTimer);
+      this._opening = false;
+      wx.showToast({ title: "没有二维码", icon: "none" });
+      return;
+    }
+    wx.showLoading({ title: "识别中" });
+    const decodeQr = require("../../utils/qr").decodeQr;
+    decodeQr(item.image, { thorough: true })
+      .then((text) => go(text))
+      .catch(() => go(""))
+      .then(done, () => done(false));
   },
 
   close() {

@@ -43,6 +43,33 @@
   color: #888;
 }
 
+.scan-btn {
+  margin-top: 16rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  text-align: center;
+  background: #0d3b66;
+  color: #fff;
+  border-radius: 16rpx;
+  font-size: 30rpx;
+  font-weight: 500;
+}
+
+.scan-wait,
+.scan-ok {
+  margin-top: 12rpx;
+  text-align: center;
+  font-size: 22rpx;
+}
+
+.scan-wait {
+  color: #888;
+}
+
+.scan-ok {
+  color: #07c160;
+}
+
 .pick-row {
   display: flex;
   justify-content: space-between;
@@ -121,41 +148,17 @@
   background: #0d3b66;
 }
 
-.chip-wechat.on { background: #07c160; }
-.chip-alipay.on { background: #1677ff; }
-.chip-unionpay.on { background: #e21836; }
-.chip-link.on { background: #6366f1; }
-.chip-text.on { background: #d97706; }
-.chip-custom.on { background: #57534e; }
-
-.action {
-  margin-top: 12rpx;
-  padding: 20rpx;
-  border-radius: 16rpx;
-  background: #fafafa;
-}
-
-.action.on {
-  background: #e8eef5;
-}
-
-.action-title {
-  font-size: 28rpx;
-  font-weight: 500;
-}
-
-.action-hint {
-  margin-top: 4rpx;
-  font-size: 22rpx;
-  color: #888;
-}
-
-.note {
-  display: block;
-  margin-top: 12rpx;
-  font-size: 30rpx;
-}
+.chip-parking.on { background: #0d3b66; }
+.chip-dining.on { background: #c2410c; }
+.chip-hotel.on { background: #6d28d9; }
+.chip-shopping.on { background: #0f766e; }
+.chip-transit.on { background: #0369a1; }
+.chip-other.on { background: #57534e; }
 
 .save {
   margin-top: 32rpx;
+}
+
+.save[disabled] {
+  opacity: 0.7;
 }

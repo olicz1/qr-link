@@ -1,9 +1,6 @@
 Component({
-  properties: {
-    active: {
-      type: String,
-      value: "index",
-    },
+  data: {
+    active: "index",
   },
   methods: {
     go(e) {

@@ -1,65 +1,36 @@
 const SEED = [
   {
-    id: "seed-wechat",
-    title: "微信收款",
-    subtitle: "WeChat Pay · counter",
-    channel: "wechat",
-    action: "payment",
-    image: "/images/wechat.png",
-    payload: "weixin://wxpay/bizpayurl?pr=PAYCASE-EASTWIND-WX",
-    amount: "18.00",
-    note: "Lunch set · WeChat Pay",
+    id: "seed-aosen-parking",
+    title: "奥森停车场",
+    subtitle: "扫码缴费 · 自动抬杆",
+    channel: "parking",
+    action: "open_miniapp",
+    image: "/images/aosen-parking.jpg",
+    payload: "https://ipp.chinaums.com/ipp-avs/parking/rate/index?merInstId=040000008677",
+    amount: "",
+    note: "",
     pinned: true,
   },
   {
-    id: "seed-alipay",
-    title: "支付宝收款",
-    subtitle: "Alipay · counter",
-    channel: "alipay",
-    action: "payment",
-    image: "/images/alipay.png",
-    payload: "https://qr.alipay.com/fkxPAYCASEEASTWIND",
-    amount: "18.00",
-    note: "Lunch set · Alipay",
-    pinned: false,
-  },
-  {
-    id: "seed-unionpay",
-    title: "云闪付",
-    subtitle: "UnionPay Quick Pass",
-    channel: "unionpay",
-    action: "payment",
-    image: "/images/unionpay.png",
-    payload: "https://qr.95516.com/pay/PAYCASE-EASTWIND",
-    amount: "28.00",
-    note: "Large bowl · UnionPay",
-    pinned: false,
-  },
-  {
-    id: "seed-menu",
-    title: "周末套餐",
-    subtitle: "Weekend set menu",
-    channel: "link",
-    action: "open_link",
-    image: "/images/menu.png",
-    payload: "/pages/promo/promo",
+    id: "seed-garage-prepay",
+    title: "车库预缴",
+    subtitle: "预先缴费 · 20分钟离场",
+    channel: "parking",
+    action: "open_miniapp",
+    image: "/images/garage-prepay.jpg",
+    payload: "http://s.keytop.cn/leb3s1",
     amount: "",
-    note: "Opens the in-app weekend special.",
+    note: "",
     pinned: false,
   },
-  {
-    id: "seed-hours",
-    title: "营业时间",
-    subtitle: "Hours & pickup",
-    channel: "text",
-    action: "show_content",
-    image: "/images/hours.png",
-    payload:
-      "东风面馆 East Wind Noodles\nHours 11:00–21:00\nTake a number at the counter\nLast order 20:30",
-    amount: "",
-    note: "Text QR — tap to show content.",
-    pinned: false,
-  },
+];
+
+const REMOVED_SEEDS = [
+  "seed-wechat",
+  "seed-alipay",
+  "seed-unionpay",
+  "seed-menu",
+  "seed-hours",
 ];
 
 const ITEMS_KEY = "paycase.codes.v1";
@@ -70,40 +41,106 @@ const DEFAULT_PROFILE = {
   shopNameEn: "East Wind Noodles",
 };
 
-const CHANNEL_META = {
-  wechat: { label: "WeChat", labelZh: "微信支付", color: "#07C160" },
-  alipay: { label: "Alipay", labelZh: "支付宝", color: "#1677FF" },
-  unionpay: { label: "UnionPay", labelZh: "云闪付", color: "#E21836" },
-  link: { label: "Link", labelZh: "链接", color: "#6366F1" },
-  text: { label: "Text", labelZh: "文本", color: "#D97706" },
-  custom: { label: "Custom", labelZh: "自定义", color: "#57534E" },
+const TAG_META = {
+  parking: { label: "停车", color: "#0D3B66" },
+  dining: { label: "吃饭", color: "#C2410C" },
+  hotel: { label: "酒店", color: "#6D28D9" },
+  shopping: { label: "购物", color: "#0F766E" },
+  transit: { label: "出行", color: "#0369A1" },
+  other: { label: "其他", color: "#57534E" },
 };
 
+const LEGACY_TAGS = {
+  wechat: "dining",
+  alipay: "dining",
+  unionpay: "parking",
+  link: "dining",
+  text: "other",
+  custom: "other",
+};
+
+const TAGS = Object.keys(TAG_META).map((id) => ({
+  id,
+  label: TAG_META[id].label,
+}));
+
+function tagId(id) {
+  if (TAG_META[id]) return id;
+  return LEGACY_TAGS[id] || "other";
+}
+
 function decorate(item) {
-  const meta = CHANNEL_META[item.channel] || CHANNEL_META.custom;
+  const id = tagId(item.channel);
+  const meta = TAG_META[id];
   return Object.assign({}, item, {
-    channelLabel: meta.labelZh,
+    channel: id,
+    channelLabel: meta.label,
     channelColor: meta.color,
   });
 }
 
+function migrateItems(items) {
+  let changed = false;
+  const next = items.map((item) => {
+    const channel = tagId(item.channel);
+    if (channel === item.channel) return item;
+    changed = true;
+    return Object.assign({}, item, { channel });
+  });
+  return changed ? next : items;
+}
+
+let itemsCache = null;
+let profileCache = null;
+let seeded = false;
+
+function stripRemoved(items) {
+  const next = items.filter((item) => REMOVED_SEEDS.indexOf(item.id) === -1);
+  return next.length === items.length ? items : next;
+}
+
+function readItems() {
+  if (itemsCache) return itemsCache;
+  itemsCache = wx.getStorageSync(ITEMS_KEY) || [];
+  return itemsCache;
+}
+
+function writeItems(items) {
+  itemsCache = items;
+  wx.setStorageSync(ITEMS_KEY, items);
+}
+
+function writeProfile(next) {
+  profileCache = next;
+  wx.setStorageSync(PROFILE_KEY, next);
+}
+
 function ensureSeed() {
+  if (seeded) return;
+  seeded = true;
   const existing = wx.getStorageSync(ITEMS_KEY);
   if (!existing || !existing.length) {
-    wx.setStorageSync(
-      ITEMS_KEY,
-      SEED.map((item, i) => ({ ...item, createdAt: Date.now() - i * 60000 })),
-    );
+    writeItems(SEED.map((item, i) => ({ ...item, createdAt: Date.now() - i * 60000 })));
+  } else {
+    let next = stripRemoved(migrateItems(existing));
+    let changed = next !== existing;
+    SEED.forEach((seed) => {
+      if (!next.some((item) => item.id === seed.id)) {
+        next = [Object.assign({}, seed, { createdAt: Date.now() })].concat(next);
+        changed = true;
+      }
+    });
+    if (changed) writeItems(next);
+    else itemsCache = next;
   }
   if (!wx.getStorageSync(PROFILE_KEY)) {
-    wx.setStorageSync(PROFILE_KEY, DEFAULT_PROFILE);
+    writeProfile(DEFAULT_PROFILE);
   }
 }
 
 function list() {
   ensureSeed();
-  const items = wx.getStorageSync(ITEMS_KEY) || [];
-  return items
+  return readItems()
     .slice()
     .sort((a, b) => {
       if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
@@ -113,50 +150,53 @@ function list() {
 }
 
 function profile() {
-  return wx.getStorageSync(PROFILE_KEY) || DEFAULT_PROFILE;
+  if (profileCache) return profileCache;
+  profileCache = wx.getStorageSync(PROFILE_KEY) || DEFAULT_PROFILE;
+  return profileCache;
 }
 
 function setProfile(next) {
-  wx.setStorageSync(PROFILE_KEY, next);
+  writeProfile(next);
 }
 
 function add(item) {
-  const items = wx.getStorageSync(ITEMS_KEY) || [];
-  items.unshift(item);
-  wx.setStorageSync(ITEMS_KEY, items);
+  writeItems([item].concat(readItems()));
+}
+
+function patch(id, fields) {
+  writeItems(
+    readItems().map((item) => (item.id === id ? Object.assign({}, item, fields) : item)),
+  );
 }
 
 function remove(id) {
-  const items = (wx.getStorageSync(ITEMS_KEY) || []).filter((item) => item.id !== id);
-  wx.setStorageSync(ITEMS_KEY, items);
+  writeItems(readItems().filter((item) => item.id !== id));
 }
 
 function togglePin(id) {
-  const items = (wx.getStorageSync(ITEMS_KEY) || []).map((item) =>
-    item.id === id ? { ...item, pinned: !item.pinned } : item,
-  );
-  wx.setStorageSync(ITEMS_KEY, items);
+  writeItems(readItems().map((item) => (item.id === id ? { ...item, pinned: !item.pinned } : item)));
 }
 
 function restore() {
-  wx.setStorageSync(
-    ITEMS_KEY,
-    SEED.map((item, i) => ({ ...item, createdAt: Date.now() - i * 60000 })),
-  );
-  wx.setStorageSync(PROFILE_KEY, DEFAULT_PROFILE);
+  writeItems(SEED.map((item, i) => ({ ...item, createdAt: Date.now() - i * 60000 })));
+  writeProfile(DEFAULT_PROFILE);
+  seeded = true;
 }
 
 function clear() {
-  wx.setStorageSync(ITEMS_KEY, []);
+  writeItems([]);
 }
 
 module.exports = {
-  CHANNEL_META,
+  TAGS,
+  TAG_META,
+  CHANNEL_META: TAG_META,
   ensureSeed,
   list,
   profile,
   setProfile,
   add,
+  patch,
   remove,
   togglePin,
   restore,

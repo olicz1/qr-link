@@ -3,7 +3,8 @@
     "pages/index/index",
     "pages/upload/upload",
     "pages/me/me",
-    "pages/promo/promo"
+    "pages/promo/promo",
+    "pages/web/web"
   ],
   "window": {
     "navigationBarTitleText": "码柜",
@@ -12,6 +13,28 @@
     "backgroundColor": "#EDEDED",
     "backgroundTextStyle": "light"
   },
+  "tabBar": {
+    "custom": true,
+    "color": "#8e8e8e",
+    "selectedColor": "#0D3B66",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "码柜"
+      },
+      {
+        "pagePath": "pages/upload/upload",
+        "text": "上传"
+      },
+      {
+        "pagePath": "pages/me/me",
+        "text": "我的"
+      }
+    ]
+  },
+  "workers": "workers",
+  "lazyCodeLoading": "requiredComponents",
   "style": "v2",
   "sitemapLocation": "sitemap.json"
 }

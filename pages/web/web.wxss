@@ -1,0 +1,48 @@
+.fail {
+  padding: 120rpx 48rpx 0;
+  text-align: center;
+}
+
+.mark {
+  width: 112rpx;
+  height: 112rpx;
+  margin: 0 auto;
+  line-height: 112rpx;
+  border-radius: 50%;
+  background: #fff;
+  color: #0d3b66;
+  font-size: 40rpx;
+  font-weight: 600;
+}
+
+.title {
+  margin-top: 28rpx;
+  font-size: 36rpx;
+  font-weight: 500;
+}
+
+.copy {
+  margin-top: 12rpx;
+  font-size: 26rpx;
+  color: #888;
+  line-height: 1.5;
+}
+
+.url {
+  margin-top: 28rpx;
+  padding: 20rpx 24rpx;
+  border-radius: 16rpx;
+  background: #fff;
+  color: #191919;
+  font-size: 24rpx;
+  text-align: left;
+  word-break: break-all;
+}
+
+.wx-btn {
+  margin-top: 40rpx;
+}
+
+.wx-btn-ghost {
+  margin-top: 16rpx;
+}

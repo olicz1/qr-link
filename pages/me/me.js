@@ -1,5 +1,5 @@
 const store = require("../../utils/store");
-const { pageMetrics } = require("../../utils/layout");
+const { pageMetrics, syncTabBar } = require("../../utils/layout");
 
 function initialOf(name) {
   const text = (name || "").trim();
@@ -18,8 +18,29 @@ Page({
   },
 
   onShow() {
-    this.applyMetrics();
-    this.refresh();
+    const profile = store.profile();
+    this.setData({
+      pagePad: pageMetrics().pagePad,
+      profile,
+      initial: initialOf(profile.shopName),
+    });
+    syncTabBar("me");
+    if (this._profileTimer) {
+      clearTimeout(this._profileTimer);
+      this._profileTimer = null;
+      if (this._pendingProfile) store.setProfile(this._pendingProfile);
+    }
+  },
+
+  onHide() {
+    if (this._profileTimer) {
+      clearTimeout(this._profileTimer);
+      this._profileTimer = null;
+    }
+    if (this._pendingProfile) {
+      store.setProfile(this._pendingProfile);
+      this._pendingProfile = null;
+    }
   },
 
   applyMetrics() {
@@ -34,22 +55,32 @@ Page({
     });
   },
 
+  scheduleProfile(profile) {
+    this._pendingProfile = profile;
+    if (this._profileTimer) clearTimeout(this._profileTimer);
+    this._profileTimer = setTimeout(() => {
+      this._profileTimer = null;
+      store.setProfile(profile);
+      this._pendingProfile = null;
+    }, 280);
+  },
+
   onShop(e) {
     const profile = Object.assign({}, this.data.profile, { shopName: e.detail.value });
-    store.setProfile(profile);
     this.setData({ profile, initial: initialOf(profile.shopName) });
+    this.scheduleProfile(profile);
   },
 
   onShopEn(e) {
     const profile = Object.assign({}, this.data.profile, { shopNameEn: e.detail.value });
-    store.setProfile(profile);
     this.setData({ profile });
+    this.scheduleProfile(profile);
   },
 
   restore() {
     wx.showModal({
       title: "恢复演示数据？",
-      content: "码柜会换成东风面馆的示例收款码。",
+      content: "码柜会换成两个示例二维码。",
       success: (res) => {
         if (res.confirm) {
           store.restore();
@@ -63,7 +94,7 @@ Page({
   clear() {
     wx.showModal({
       title: "清空码柜？",
-      content: "这台设备上的收款码都会被删掉。",
+      content: "这台设备上保存的码都会被删掉。",
       confirmColor: "#FA5151",
       success: (res) => {
         if (res.confirm) {
